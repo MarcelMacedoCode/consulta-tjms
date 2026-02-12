@@ -382,7 +382,7 @@
       </div>
       <div class="form-group">
         <label class="search-label">&nbsp;</label>
-        <button class="search-btn" id="btn-buscar" onclick="buscar()">Consultar</button>
+        <button class="search-btn" id="btn-buscar">Consultar</button>
       </div>
     </div>
     <p class="search-hint">Formato CNJ: <code>NNNNNNN-DD.AAAA.J.TR.OOOO</code> — também aceita sem pontuação</p>
@@ -408,7 +408,8 @@ const $numero = document.getElementById('numero');
 const $tribunal = document.getElementById('tribunal');
 const $btn = document.getElementById('btn-buscar');
 
-// Enter to search
+// Event listeners (no inline onclick)
+$btn.addEventListener('click', buscar);
 $numero.addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
 
 function formatDate(d) {
@@ -490,7 +491,7 @@ function renderResult(p) {
       <div class="timeline" id="timeline">
         ${initial.map((m, i) => timelineItem(m, i)).join('')}
       </div>
-      ${movimentos.length > 8 ? `<button class="show-more-btn" id="btn-more" onclick="showAllMov()">Ver todas as ${movimentos.length} movimentações</button>` : ''}`;
+      ${movimentos.length > 8 ? `<button class="show-more-btn" id="btn-more" data-action="show-all">Ver todas as ${movimentos.length} movimentações</button>` : ''}`;
   }
 
   $content.innerHTML = `
@@ -553,17 +554,30 @@ function showAllMov() {
   const btn = document.getElementById('btn-more');
   if (!tl || !window._movimentos) return;
   tl.innerHTML = window._movimentos.map((m, i) => timelineItem(m, i)).join('');
-  if (btn) btn.outerHTML = `<button class="show-more-btn" onclick="showLessMov()">Mostrar menos</button>`;
+  if (btn) {
+    btn.textContent = 'Mostrar menos';
+    btn.setAttribute('data-action', 'show-less');
+  }
 }
 
 function showLessMov() {
   const tl = document.getElementById('timeline');
+  const btn = document.getElementById('btn-more');
   if (!tl || !window._movimentos) return;
   tl.innerHTML = window._movimentos.slice(0, 8).map((m, i) => timelineItem(m, i)).join('');
-  const container = tl.parentElement;
-  const oldBtn = container.querySelector('.show-more-btn');
-  if (oldBtn) oldBtn.outerHTML = `<button class="show-more-btn" id="btn-more" onclick="showAllMov()">Ver todas as ${window._movimentos.length} movimentações</button>`;
+  if (btn) {
+    btn.textContent = 'Ver todas as ' + window._movimentos.length + ' movimentações';
+    btn.setAttribute('data-action', 'show-all');
+  }
 }
+
+// Event delegation for dynamically created buttons
+$content.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  if (btn.getAttribute('data-action') === 'show-all') showAllMov();
+  else if (btn.getAttribute('data-action') === 'show-less') showLessMov();
+});
 </script>
 </body>
 </html>
