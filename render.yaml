@@ -10,3 +10,7 @@ services:
         value: production
       - key: DATAJUD_API_KEY
         value: cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==
+      - key: EPROC_1G_URL
+        value: https://eproc1g.tjms.jus.br/eproc
+      - key: EPROC_2G_URL
+        value: https://eproc2g.tjms.jus.br/eproc

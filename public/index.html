@@ -307,11 +307,52 @@ async function buscar() {
     </div>`;
 
   try {
-    const resp = await fetch('/api/consulta-completa', {
+    // Tenta rota completa (v2); se 404, fallback pra rota simples (v1)
+    let resp = await fetch('/api/consulta-completa', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ numero })
     });
+
+    // Fallback: servidor antigo sem a rota /consulta-completa
+    if (resp.status === 404) {
+      resp = await fetch('/api/consulta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numero, tribunal: 'tjms' })
+      });
+      const fallback = await resp.json();
+      if (!resp.ok) {
+        $content.innerHTML = `<div class="error-card"><strong>⚠ Erro</strong>${fallback.error || 'Erro desconhecido.'}</div>`;
+        return;
+      }
+      if (!fallback.total || !fallback.processos?.length) {
+        $content.innerHTML = `<div class="not-found"><strong>Nenhum processo encontrado</strong><br>Verifique se o número está correto.</div>`;
+        return;
+      }
+      // Converte resposta v1 pro formato v2
+      const p = fallback.processos[0];
+      renderResult({
+        unificado: {
+          numero: p.numeroProcesso || '',
+          classe: p.classe?.nome || '',
+          area: '', assuntos: p.assuntos?.map(a => a.nome || a.codigo) || [],
+          assuntoPrincipal: p.assuntos?.[0]?.nome || '',
+          orgaoJulgador: p.orgaoJulgador?.nome || '', juiz: '',
+          distribuicao: p.dataAjuizamento || '', valorAcao: '',
+          grau: p.grau || '', formato: p.formato?.nome || '',
+          nivelSigilo: p.nivelSigilo, dataUltimaAtualizacao: p.dataHoraUltimaAtualizacao || '',
+          partes: [], movimentacoes: (p.movimentos || []).sort((a,b) => new Date(b.dataHora||0) - new Date(a.dataHora||0)).map(m => ({
+            data: m.dataHora || '', descricao: m.nome || m.codigo || '',
+            complementos: (m.complementosTabelados||[]).map(c=>c.nome||c.descricao||c.valor||'').filter(Boolean),
+            fonte: 'datajud'
+          })),
+          fontes: { datajud: true, esaj1g: false, esaj2g: false, eproc1g: false, eproc2g: false },
+          segundoGrau: null,
+        }
+      });
+      return;
+    }
 
     const data = await resp.json();
 

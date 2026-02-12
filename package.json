@@ -1,7 +1,7 @@
 {
   "name": "consulta-tjms",
   "version": "1.0.0",
-  "description": "Consulta processual TJMS via API DataJud/CNJ",
+  "description": "Consulta processual TJMS via DataJud + eSAJ + eproc",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -15,6 +15,7 @@
     "cors": "^2.8.5",
     "node-fetch": "^2.7.0",
     "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5"
+    "express-rate-limit": "^7.1.5",
+    "cheerio": "^1.0.0-rc.12"
   }
 }
